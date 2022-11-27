@@ -13,6 +13,7 @@ const type_guard = (msg: Record<string, unknown>, ...types: string[]):boolean =>
 }
 
 const acknowledge = (conn: WebSocket.WebSocket) => {
+    if (conn.readyState !== conn.OPEN) return;
     conn.send(JSON.stringify({ kind: "acknowledged" }));
 }
 
@@ -25,7 +26,6 @@ const Application = async () => {
     Server.add_listener("host_playback", (from, msg) => {
         if (!is_host(msg)) return;
         if (!type_guard(msg, "playback_event")) return;
-
         app_state.playback = msg.playback_event as string;
         Server.send(from, { kind: "playback", playback_event: app_state.playback });
         acknowledge(from);
@@ -36,7 +36,8 @@ const Application = async () => {
         if (!type_guard(msg, "duration")) return;
 
         app_state.time = msg.duration as number;
-        Server.send(from, { kind: "duration", duration: app_state.time });
+        app_state.playback = msg.playback as string;
+        Server.send(from, { kind: "duration", duration: app_state.time, playback: app_state.playback });
         acknowledge(from);
     })
 

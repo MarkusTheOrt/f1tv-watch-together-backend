@@ -56,6 +56,7 @@ class SocketServer {
 
     set message(message: Record<string, unknown>) {
         for (const connection of this.connections) {
+            if (connection.readyState !== connection.OPEN) continue;
             connection.send(JSON.stringify(message), (e) => {
                 if (e === undefined) return;
                 console.error(e);
@@ -66,6 +67,7 @@ class SocketServer {
     send(sender: Connection, message: Record<string, unknown>) {
         for (const connection of this.connections) {
             if (connection === sender) continue;
+            if (connection.readyState !== connection.OPEN) continue;
             connection.send(JSON.stringify(message), (e) => {
                 if (e === undefined) return;
                 console.error(e);
